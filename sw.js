@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lulu-weight-loss-v1';
+const CACHE_NAME = 'lulu-weight-loss-v2';
 const URLS_TO_CACHE = ['index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png'];
 
 // 安装：缓存核心资源
