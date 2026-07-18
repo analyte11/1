@@ -1,58 +1,75 @@
-const CACHE_NAME = 'lulu-weight-loss-v2';
-const URLS_TO_CACHE = ['index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png'];
+const CACHE_NAME = 'lulu-weight-v1';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon-48.png',
+  './icons/icon-72.png',
+  './icons/icon-96.png',
+  './icons/icon-144.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
 
-// 安装：缓存核心资源
-self.addEventListener('install', function(event) {
+// 安装时预缓存所有资源
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      console.log('[SW] 缓存核心资源');
-      return cache.addAll(URLS_TO_CACHE).catch(function(err) {
-        console.log('[SW] 缓存部分失败(离线可用会受限):', err);
-      });
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// 激活：清理旧缓存
-self.addEventListener('activate', function(event) {
+// 激活时清理旧缓存
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map(function(name) {
-          if (name !== CACHE_NAME) {
-            console.log('[SW] 删除旧缓存:', name);
-            return caches.delete(name);
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// 拦截请求：网络优先+缓存兜底
-self.addEventListener('fetch', function(event) {
+// 网络请求拦截 - 缓存优先策略
+self.addEventListener('fetch', event => {
+  // API请求不缓存，走网络
+  if (event.request.url.includes('api.deepseek.com')) {
+    return;
+  }
+  
   event.respondWith(
-    fetch(event.request).then(function(response) {
-      // 成功请求缓存副本
-      if (response && response.status === 200 && event.request.method === 'GET') {
-        var responseClone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, responseClone);
-        });
-      }
-      return response;
-    }).catch(function() {
-      // 离线时使用缓存
-      return caches.match(event.request).then(function(cached) {
-        if (cached) return cached;
-        // 如果是导航请求(index.html)，返回缓存的首页
-        if (event.request.mode === 'navigate') {
-          return caches.match('index.html');
+    caches.match(event.request)
+      .then(response => {
+        // 缓存命中则返回缓存
+        if (response) {
+          return response;
         }
-        return new Response('离线模式', { status: 503 });
-      });
-    })
+        // 否则请求网络，并缓存结果
+        return fetch(event.request).then(
+          response => {
+            // 只缓存有效的响应
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+            return response;
+          }
+        ).catch(() => {
+          // 完全离线时可以返回缓存中的首页
+          return caches.match('./index.html');
+        });
+      })
   );
 });

@@ -1,20 +1,34 @@
 {
-  "name": "噜噜减重 - 智能减重助手",
+  "name": "噜噜减重",
   "short_name": "噜噜减重",
-  "description": "DeepSeek AI驱动的智能减重助手，精准计算热量、饮水建议、膳食推荐",
+  "description": "智能减重助手 - 记录体重、饮水、饮食热量",
   "start_url": "index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f0f4f8",
   "theme_color": "#6c63ff",
-  "orientation": "portrait",
-  "scope": ".",
-  "categories": [
-    "health",
-    "fitness",
-    "lifestyle"
-  ],
-  "lang": "zh-CN",
+  "scope": "./",
   "icons": [
+    {
+      "src": "icons/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
@@ -26,5 +40,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "splash_pages": null
 }
